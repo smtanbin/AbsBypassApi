@@ -3,7 +3,13 @@ const express = require("express")
 const Api = require("./api")
 const app = express()
 const port = 3000
+const cors = require("cors")
 
+const corsOptions = {
+  origin: "*",
+  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+app.use(cors(corsOptions))
 app.use(express.json())
 // app.use(bodyParser.json({ limit: "50mb" }))
 // app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }))
