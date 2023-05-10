@@ -17,18 +17,14 @@ app.use(express.json())
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*")
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+  // res.header("Access-Control-Allow-Headers", "Content-Type, Authorization")
   next()
 })
 
-// app.use("*", (req, res, next) => {
-//   console.log(`Request: ${req.method} ${req.originalUrl}`)
-//   console.log()
-//   console.log(`Headers: ${JSON.stringify(req.headers)}`)
-//   console.log()
-//   console.log(`Body: ${JSON.stringify(req.body)}`)
-//   next()
-// })
+app.use("*", (req, res, next) => {
+  console.log(`BaseUrl:${req.baseUrl}, Payload: ${JSON.stringify(req.body)}`)
+  next()
+})
 
 app.get("/", (req, res) => {
   const date = new Date()
@@ -48,13 +44,25 @@ app.post("/login", async (req, res) => {
 
 app.post("/execute", async (req, res) => {
   try {
-    const decoded = Buffer.from(req.data, "base64").toString()
-    const [path, token, data] = JSON.parse(decoded)
-    switch (path) {
-      case "/query":
-        const { from, select, where } = data
-        const result = await Api.query(from, select, where, token)
+    // console.log("Log:/execute, enecoded />", req.body)
+    const decoded = Buffer.from(req.body.hash, "base64").toString()
+    const parseData = JSON.parse(decoded)
+
+    // console.log("Log:/execute, decoded />", parseData)
+
+    // console.log(`path: ${parseData.path},token:${parseData.token.session}`)
+
+    switch (parseData.path) {
+      case "/QUERY":
+        const { from, select, where } = parseData.data
+        const result = await Api.query(
+          from,
+          select,
+          where,
+          parseData.token.session
+        )
         const resultBase64 = Buffer.from(result).toString("base64") // Encode the result as Base64
+
         res.send(resultBase64)
         break
       default:
