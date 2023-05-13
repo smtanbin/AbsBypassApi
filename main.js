@@ -2,7 +2,7 @@ const express = require("express")
 // const bodyParser = require("body-parser")
 const Api = require("./api")
 const app = express()
-const port = 3000
+const port = 3001
 const cors = require("cors")
 
 const corsOptions = {
@@ -31,6 +31,14 @@ app.get("/", (req, res) => {
   res.send(`Server Time: ${date}`)
 })
 
+app.get("/echo", (req, res) => {
+  let massage = { massage: "success" }
+  massage = JSON.stringify(massage)
+  const resultBase64 = Buffer.from(massage).toString("base64")
+  console.log("connected")
+  res.send(resultBase64)
+})
+
 // Define the Express routes
 app.post("/login", async (req, res) => {
   try {
@@ -53,7 +61,7 @@ app.post("/execute", async (req, res) => {
     // console.log(`path: ${parseData.path},token:${parseData.token.session}`)
 
     switch (parseData.path) {
-      case "/QUERY":
+      case "/QUERY": {
         const { from, select, where } = parseData.data
         const result = await Api.query(
           from,
@@ -65,6 +73,17 @@ app.post("/execute", async (req, res) => {
 
         res.send(resultBase64)
         break
+      }
+
+      case "/STATMENT": {
+        const { ac, from, to } = parseData.data
+        const stm = new Statment(parseData.token.session)
+        const raw_result = await stm.get(ac, from, to)
+        const result = JSON.stringify(raw_result)
+        const resultBase64 = Buffer.from(result).toString("base64")
+        res.send(resultBase64)
+        break
+      }
       default:
         res.status(404).send("Not Found")
         break
