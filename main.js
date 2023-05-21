@@ -94,7 +94,7 @@ app.post("/execute", async (req, res) => {
   }
 })
 
-app.post("/execute_plane", async (req, res) => {
+app.post("/debuging", async (req, res) => {
   try {
     // console.log("Log:/execute, enecoded />", req.body)
     const decoded = Buffer.from(req.body.hash, "base64").toString()
