@@ -1,29 +1,46 @@
-class Statment {
+const Connection = require("./Connection")
 
-    constructor(
-        token = this.token,
-        conn = new Connection(token)
-    )
-
-    async #getHeaderData(acno) {
-
-    select = `MPHONE, NVL (PMPHONE,MPHONE) PMPHONE, ACCOUNT_NAME,(SELECT P.ACC_TYPE_NAME FROM AGENT_BANKING.PRODUCT_SETUP P WHERE P.ACC_TYPE_CODE = R.AC_TYPE_CODE) TYPE,(SELECT ST.NAME FROM AGENT_BANKING.AC_STATUS ST WHERE ST.S_NAME = R.STATUS) STATUS,TO_CHAR (REG_DATE,'MONTH dd, YYYY') REG_DATE,TO_CHAR (R.EMAIL) EMAIL,
-    ROUND ((FUNC_GET_ACC_BALANCE (R.MPHONE,(TO_DATE ( :TODATE) - 1))),2) BALANCE,TO_CHAR (MATURITY_DATE,'MONTH dd, YYYY') MATURITY_DATE,CUST_ID,CON_MOB,PRE_VILLAGE|| ', '|| PRE_ROAD|| ', '|| PRE_POST|| ', '|| (SELECT NAME || ', ' || (SELECT NAME || ', ' || (SELECT NAME || ', ' || (SELECT NAME FROM AGENT_BANKING.DISTHANA WHERE CODE = F.PARENT) FROM AGENT_BANKING.DISTHANA F WHERE CODE = E.PARENT) FROM
-    AGENT_BANKING.DISTHANA E WHERE CODE = D.PARENT) FROM AGENT_BANKING.DISTHANA D WHERE CODE = (SELECT SUBSTR (LOCATION_CODE,0,6) FROM AGENT_BANKING.REGINFO WHERE MPHONE = R.MPHONE)) ADDR`
-    from= `AGENT_BANKING.REGINFO R`
-        where= `MPHONE = ${acno}`
-        new Promise((resolve, reject) => {
-            try {
-                const data = conn.get(select, from, where)
-                resolve(data)
-            } catch (e) {
-                reject(e)
-            }
-})
+class Statement {
+  constructor(token) {
+    this.token = token
+    this.conn = new Connection(this.token)
   }
 
-    #getBodyData(acno,from,to) {
-          select =`SELECT ROW_NUMBER() OVER (ORDER BY P.TRANS_NO ASC)                                                  AS "SL",
+  async init() {
+    console.log("token", this.token)
+    try {
+      const acno = "" // Set the appropriate acno value here
+      const statementData = []
+      const h = await this.getHeaderData(acno)
+      statementData.push(h)
+      // const b = await this.getBodyData(acno, from, to);
+      // statementData.push(b);
+      return statementData
+    } catch (e) {
+      console.error(`Error at init: ${e}`)
+      return ["Error", e]
+    }
+  }
+
+  async getHeaderData(acno) {
+    const select = `MPHONE, NVL (PMPHONE,MPHONE) PMPHONE, ACCOUNT_NAME,(SELECT P.ACC_TYPE_NAME FROM AGENT_BANKING.PRODUCT_SETUP P WHERE P.ACC_TYPE_CODE = R.AC_TYPE_CODE) TYPE,(SELECT ST.NAME FROM AGENT_BANKING.AC_STATUS ST WHERE ST.S_NAME = R.STATUS) STATUS,TO_CHAR (REG_DATE,'MONTH dd, YYYY') REG_DATE,TO_CHAR (R.EMAIL) EMAIL, ROUND ((FUNC_GET_ACC_BALANCE (R.MPHONE,(TO_DATE ( :TODATE) - 1))),2) BALANCE,TO_CHAR (MATURITY_DATE,'MONTH dd, YYYY') MATURITY_DATE,CUST_ID,CON_MOB,PRE_VILLAGE|| ', '|| PRE_ROAD|| ', '|| PRE_POST|| ', '|| (SELECT NAME || ', ' || (SELECT NAME || ', ' || (SELECT NAME || ', ' || (SELECT NAME FROM AGENT_BANKING.DISTHANA WHERE CODE = F.PARENT) FROM AGENT_BANKING.DISTHANA F WHERE CODE = E.PARENT) FROM AGENT_BANKING.DISTHANA E WHERE CODE = D.PARENT) FROM AGENT_BANKING.DISTHANA D WHERE CODE = (SELECT SUBSTR (LOCATION_CODE,0,6) FROM AGENT_BANKING.REGINFO WHERE MPHONE = R.MPHONE)) ADDR`
+    const from = `AGENT_BANKING.REGINFO R`
+    const where = `MPHONE = ${acno}`
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        const data = await this.conn.get(select, from, where)
+        console.log("getHeaderData done")
+        resolve(data)
+      } catch (e) {
+        console.log("getHeaderData Error ", e)
+        reject(`Reject by getHeaderData: ${e}`)
+      }
+    })
+  }
+
+  getBodyData(acno, from, to) {
+    select = `SELECT ROW_NUMBER() OVER (ORDER BY P.TRANS_NO ASC)                                                  AS "SL",
     NVL (P.CR_AMT,
     0)                                                               CR_AMT,
     NVL (P.DR_AMT,
@@ -296,7 +313,7 @@ class Statment {
     'CEFT',
     'RTGSC',
     'CC') THEN P.PARTICULAR WHEN CODE IS NULL THEN P.PARTICULAR END) PARTICULAR`
-        from=`(
+    from = `(
         SELECT
             *
         FROM
@@ -306,30 +323,21 @@ class Statment {
             FROM
                 AGENT_BANKING.GL_TRANS_DTL_OLD
     ) P`
-        where= `BALANCE_MPHONE = TO_CHAR(${acno})
+    where = `BALANCE_MPHONE = TO_CHAR(${acno})
     AND TRUNC (TRANS_DATE) BETWEEN TO_DATE(${from})
     AND TO_DATE(${to})
 ORDER BY
     TRANS_NO ASC`
-        new Promise((resolve, reject) => {
-            try {
-                const data = conn.get(select, from, where)
-                resolve(data)
-            } catch (e) {
-                reject(e)
-            }
-})
+    new Promise((resolve, reject) => {
+      try {
+        const data = conn.get(select, from, where)
+        console.log("getBodyData done")
+        resolve(data)
+      } catch (e) {
+        reject(e)
+      }
+    })
   }
-
-    async get(acno, from, to) {
-        const ststmentData = []
-        const h = await this.#getHeaderData(acno)
-        ststmentData.push(h)
-        const b = await this.#getBodyData(acno, from, to)
-        ststmentData.push(b)
-        return ststmentData
-  }
- 
 }
 
-module.exports = Statment
+module.exports = Statement

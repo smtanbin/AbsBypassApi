@@ -1,5 +1,5 @@
 const express = require("express")
-const Statment = require("./src/Stantment")
+const Statement = require("./src/Stantment")
 // const bodyParser = require("body-parser")
 const Api = require("./api")
 const app = express()
@@ -22,10 +22,10 @@ app.use((req, res, next) => {
   next()
 })
 
-app.use("*", (req, res, next) => {
-  console.log(`BaseUrl:${req.baseUrl}, Payload: ${JSON.stringify(req.body)}`)
-  next()
-})
+// app.use("*", (req, res, next) => {
+//   console.log(`BaseUrl:${req.baseUrl}, Payload: ${JSON.stringify(req.body)}`)
+//   next()
+// })
 
 app.get("/", (req, res) => {
   const date = new Date()
@@ -78,7 +78,7 @@ app.post("/execute", async (req, res) => {
 
       case "/STATMENT": {
         const { ac, from, to } = parseData.data
-        const stm = new Statment(parseData.token.session)
+        const stm = new Statement(parseData.token.session)
         const raw_result = await stm.get(ac, from, to)
         const result = JSON.stringify(raw_result)
         const resultBase64 = Buffer.from(result).toString("base64")
@@ -99,7 +99,8 @@ app.post("/execute", async (req, res) => {
 app.post("/debuging", async (req, res) => {
   try {
     // console.log("Log:/execute, enecoded />", req.body)
-    const parseData = req.body.hash
+
+    const parseData = JSON.parse(req.body.hash)
 
     console.log("Log:/debuging />", parseData)
 
@@ -114,15 +115,15 @@ app.post("/debuging", async (req, res) => {
           where,
           parseData.token.session
         )
-
         res.send(result)
         break
       }
 
       case "/STATMENT": {
         const { ac, from, to } = parseData.data
-        const stm = new Statment(parseData.token.session)
-        const raw_result = await stm.get(ac, from, to)
+        const stm = new Statement(parseData.token.session)
+        const raw_result = await stm.init(ac, from, to)
+
         const result = JSON.stringify(raw_result)
         res.send(result)
         break

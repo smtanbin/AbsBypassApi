@@ -1,44 +1,44 @@
-class Connection {
-        constructor(
-        token = this.token
-    )
+const request = require("request")
 
-    async conn(select,from,where) {
-        const url =
-        "https://agentbanking.standardbankbd.com/agentbank_v2/includes/call_list.php"
-        if (!token) return "Error: Token Not Found"
-        const cookies = [`PHPSESSID=${token}`]
-        // Create a cookie header with the PHPSESSID value
-            // Create a POST request with the query parameters
+class Connection {
+  constructor(token) {
+    this.token = token
+  }
+
+  async get(select, from, where) {
+    const url =
+      "https://agentbanking.standardbankbd.com/agentbank_v2/includes/call_list.php"
+
+    if (!this.token) {
+      throw new Error("Error: Token Not Found")
+    }
+
+    const cookies = [`PHPSESSID=${this.token}`]
     const options = {
       url: url,
       method: "POST",
       headers: {
-        Cookie: cookies.join(";"), // Add the cookie header to the request headers
+        Cookie: cookies.join(";"),
       },
       form: {
         table_name: from,
         column_name: select,
-        condition: `and ${where}`,
+        condition: `and ${where}`.replace(/'/g, "\\'"),
       },
     }
-           try {
-      return await new Promise((resolve, reject) => {
-        // Send the request and handle the response
-        request.post(options, (err, httpResponse, body) => {
-          if (err) {
-            console.error("Error sending query request", err)
-            reject(err)
-          } else {
-            resolve(body)
-          }
-        })
-      })
-    } catch (err_1) {
-      console.error("Error Macking Post", err_1)
-      throw new Error("Error Macking Post", err_1)
+
+    console.log("Connection options />", options)
+
+    const response = await request.post(options)
+
+    console.log("Connection response />", response)
+
+    if (response.statusCode !== 200) {
+      throw new Error(`Error getting data: ${response.statusCode}`)
     }
-    }
+
+    return response.body
+  }
 }
 
 module.exports = Connection
