@@ -1,8 +1,9 @@
 const express = require("express")
+const Statment = require("./src/Stantment")
 // const bodyParser = require("body-parser")
 const Api = require("./api")
 const app = express()
-const port = 3000
+const port = 8000
 const cors = require("cors")
 
 const corsOptions = {
@@ -69,8 +70,8 @@ app.post("/execute", async (req, res) => {
           where,
           parseData.token.session
         )
+        console.log("Log://responce/>", result)
         const resultBase64 = Buffer.from(result).toString("base64") // Encode the result as Base64
-
         res.send(resultBase64)
         break
       }
@@ -85,6 +86,7 @@ app.post("/execute", async (req, res) => {
         break
       }
       default:
+        console.log("Request://>", decoded)
         res.status(404).send("Not Found")
         break
     }
@@ -97,10 +99,9 @@ app.post("/execute", async (req, res) => {
 app.post("/debuging", async (req, res) => {
   try {
     // console.log("Log:/execute, enecoded />", req.body)
-    const decoded = Buffer.from(req.body.hash, "base64").toString()
-    const parseData = JSON.parse(decoded)
+    const parseData = req.body.hash
 
-    // console.log("Log:/execute, decoded />", parseData)
+    console.log("Log:/debuging />", parseData)
 
     // console.log(`path: ${parseData.path},token:${parseData.token.session}`)
 
