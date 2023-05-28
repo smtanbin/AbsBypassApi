@@ -20,10 +20,10 @@ class Connection {
       headers: {
         Cookie: cookies.join(";"),
       },
-      form: {
+      formData: {
         table_name: from,
         column_name: select,
-        condition: `and ${where}`.replace(/'/g, "\\'"),
+        condition: "and " + where,
       },
     }
 
@@ -31,7 +31,7 @@ class Connection {
 
     const response = await request.post(options)
 
-    console.log("Connection response />", response)
+    // console.log("Connection Status Code />", response)
 
     if (response.statusCode !== 200) {
       throw new Error(`Error getting data: ${response.statusCode}`)
