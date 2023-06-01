@@ -3,7 +3,7 @@ const Statement = require("./src/Stantment")
 // const bodyParser = require("body-parser")
 const Api = require("./api")
 const app = express()
-const port = 8000
+const port = 8080
 const cors = require("cors")
 
 const corsOptions = {
@@ -79,7 +79,7 @@ app.post("/execute", async (req, res) => {
       case "/STATMENT": {
         const { ac, from, to } = parseData.data
         const stm = new Statement(parseData.token.session)
-        const raw_result = await stm.get(ac, from, to)
+        const raw_result = await stm.init(ac, from, to)
         const result = JSON.stringify(raw_result)
         const resultBase64 = Buffer.from(result).toString("base64")
         res.send(resultBase64)
@@ -100,7 +100,8 @@ app.post("/debuging", async (req, res) => {
   try {
     // console.log("Log:/execute, enecoded />", req.body)
 
-    const parseData = JSON.parse(req.body.hash)
+    // const parseData = JSON.parse(req.body)
+    const parseData = req.body
 
     console.log("Log:/debuging />", parseData)
 
@@ -121,6 +122,7 @@ app.post("/debuging", async (req, res) => {
 
       case "/STATMENT": {
         const { ac, from, to } = parseData.data
+        console.log(">", ac, from, to)
         const stm = new Statement(parseData.token.session)
         const raw_result = await stm.init(ac, from, to)
 

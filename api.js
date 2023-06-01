@@ -4,7 +4,7 @@ const request = require("request")
 class Api {
   static login(data) {
     const decoded = Buffer.from(data, "base64").toString()
-    // console.log("Log/login: decoded variable />", decoded)
+    // Must Ignore cros error
     const auth = decoded.split(":")
     const url =
       "https://agentbanking.standardbankbd.com/agentbank_v2/includes/login_check.php"
@@ -20,10 +20,6 @@ class Api {
         password: _password,
       },
     }
-
-    // console.log("Log: Auth Options />", options)
-
-    // return "g477d8s635g39tguci7j101463"
     return new Promise((resolve, reject) => {
       // Send the request and handle the response
       try {
